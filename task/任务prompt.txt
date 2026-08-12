@@ -1,0 +1,7 @@
+支付入口的待发布Chart仍用tag引用主容器，也没有把灰度入口和镜像来源放进同一版发布材料。版本组准备在本周维护窗先上canary，再根据现场观察决定是否推进prod。
+
+starter_chart是当前分支，registry_policy.json记录gateway、WAF、authz和配置加载器的仓库、digest及构建来源。release_cases.csv与case_values目录对应prod、canary和breakglass三组环境，provenance_attestations.jsonl由构建平台导出来源摘要。release_policy.json给出窗口、影响、上线顺序、观察时长、撤回条件和观察项。
+
+整理Chart的镜像引用、values与Schema，让四个组件都使用仓库加digest。稳定Service始终保留，canary权重大于0时生成ingress-nginx灰度Ingress，稳定权重与灰度权重按环境参数闭合。分别执行Helm检查和模板渲染，汇总每个环境的对象目录、入口权重与镜像来源。
+
+发布经理会用候选Chart、三份清单和结构化报告核对发布范围，再按维护窗安排canary与prod。发布说明写清窗口、影响、观察时长、撤回动作和观察项；构建平台继续维护签名状态，集群管理员接手现场应用与运行观察。

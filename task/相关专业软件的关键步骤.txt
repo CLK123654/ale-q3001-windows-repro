@@ -1,0 +1,5 @@
+1.用helm lint检查候选Chart、values与Schema。
+2.核对四个组件的仓库和digest，把镜像引用写入Chart。
+3.分别载入prod、canary和breakglass参数执行helm template。
+4.检查稳定Service、Ingress对象和canary权重注解与环境参数一致。
+5.汇总候选对象、入口计划和镜像来源，形成维护窗材料。

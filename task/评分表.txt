@@ -1,0 +1,97 @@
+总分100分
+
+1. 完整交付可以读取
+分值：10分
+标准答案：交付目录包含候选Chart、三份候选清单、对象目录、入口计划、镜像来源、发布安排、发布说明和目录说明
+关键字段：output/chart、output/rendered、output/reports、output/release-plan.json、output/RELEASE-NOTES.md、output/README.md
+容差：YAML键序和Markdown措辞可变，文件用途不可变化
+失败边界：任一核心交付缺失、为空或无法解析
+可观察证据：交付目录及文件内容
+客观硬性标准：所列交付均可打开并对应本次支付入口发布
+阈值：核心交付缺失数为0
+优先级：Gate项
+所属层级：L1任务指令遵循层
+
+2. 三类业务输入全部进入交付链
+分值：10分
+标准答案：环境参数来自release_cases.csv与case_values，镜像来源来自registry_policy.json与provenance_attestations.jsonl，维护窗安排来自release_policy.json
+关键字段：case_id、repository、digest、builder、source_ref、change_window、environment_order
+容差：CSV与JSONL行序可变
+失败边界：任一主要输入未使用或输出字段无法回连来源
+可观察证据：输入材料、Chart、三份报告和release-plan.json
+客观硬性标准：每类输入都有可定位的交付消费者
+阈值：未消费的主要输入数为0
+优先级：Gate项
+所属层级：L3输入数据导入与完整性层
+
+3. Chart由Helm正常处理
+分值：12分
+标准答案：候选Chart通过Helm严格检查，三个环境均能生成可解析清单
+关键字段：Chart.yaml、values.schema.json、values目录、rendered目录
+容差：模板文件拆分和YAML格式可变
+失败边界：Helm检查或任一环境渲染失败，或生成的YAML不可解析
+可观察证据：Helm输出和三份候选清单
+客观硬性标准：规定版本Helm能处理全部环境参数
+阈值：合格环境数为3
+优先级：Gate项
+所属层级：L2软件或工具操作层
+
+4. 四个镜像引用与来源一致
+分值：18分
+标准答案：gateway、waf、authz和config-loader均使用registry_policy.json所列仓库加digest，image_sources.csv同时保留构建者、源码引用和签名状态
+关键字段：component、repository、digest、builder、source_ref、signature_state
+容差：组件行序可变
+失败边界：使用tag、digest或仓库串用、组件漏记，或来源字段与构建平台摘要不一致
+可观察证据：Deployment模板、三份候选清单、image_sources.csv与两份来源输入
+客观硬性标准：四个组件的六项来源字段逐项一致
+阈值：正确组件数为4
+优先级：Gate项
+所属层级：L5多源关联与字段一致性层
+
+5. 稳定入口与灰度入口关系正确
+分值：16分
+标准答案：三个环境都保留稳定Service和稳定Ingress，canary环境另有灰度Ingress且权重为15，prod与breakglass不生成灰度Ingress
+关键字段：kind、metadata.name、nginx.ingress.kubernetes.io/canary、nginx.ingress.kubernetes.io/canary-weight
+容差：对象顺序可变
+失败边界：稳定入口缺失、灰度对象环境错误或权重注解与输入不符
+可观察证据：三份候选清单、rendered_objects.csv和route_plan.csv
+客观硬性标准：Ingress数量和canary注解按环境参数逐项吻合
+阈值：入口关系错误数为0
+优先级：高权重项
+所属层级：L7产物结构或Schema或专业对象层
+
+6. 环境参数与候选清单一致
+分值：14分
+标准答案：prod、canary和breakglass分别使用输入指定的命名空间、发布名、副本、mTLS模式、WAF模式和入口权重
+关键字段：namespace、release、replicas、mtls、waf_mode、stable_weight、canary_weight
+容差：等价YAML标量写法可变
+失败边界：跨环境串用或任一业务字段与release_cases.csv不一致
+可观察证据：三份环境values、候选清单、rendered_objects.csv和route_plan.csv
+客观硬性标准：环境业务键关联后的字段逐项相等
+阈值：正确环境数为3
+优先级：高权重项
+所属层级：L8运行验证层
+
+7. 发布安排可以用于维护窗
+分值：12分
+标准答案：发布安排保留输入中的窗口、影响、canary先行顺序、观察时长、撤回条件、撤回动作和观察项
+关键字段：change_window、impact、environment_order、observation_minutes、rollback_condition、rollback_action、observation_metrics
+容差：JSON键序和说明措辞可变
+失败边界：任一控制信息缺失或与release_policy.json冲突
+可观察证据：release-plan.json、RELEASE-NOTES.md和release_policy.json
+客观硬性标准：结构化安排与说明材料相互一致
+阈值：控制信息不一致数为0
+优先级：高权重项
+所属层级：L9跨产物一致性与可追溯层
+
+8. 岗位职责与报告口径清楚
+分值：8分
+标准答案：版本组维护Chart与候选清单，构建平台维护来源和签名状态，发布经理决定是否推进，集群管理员负责现场应用与运行观察
+关键字段：Chart、来源摘要、签名状态、发布决定、现场应用、运行观察
+容差：表达顺序可变
+失败边界：把配置权重写成现场流量结果、把摘要比对写成重新完成签名，或缺少交付消费者
+可观察证据：README.md、RELEASE-NOTES.md和输入README.md
+客观硬性标准：四类岗位职责和报告口径均可直接定位
+阈值：职责或口径缺失数为0
+优先级：普通项
+所属层级：L1任务指令遵循层

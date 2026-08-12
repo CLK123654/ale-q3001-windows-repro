@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "gateway.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ include "gateway.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+  annotations:
+    artifact.example.com/source-ref: {{ index .Chart.Annotations "artifact.example.com/source-ref" | quote }}
+    artifact.example.com/builder: {{ index .Chart.Annotations "artifact.example.com/builder" | quote }}
+    artifact.example.com/digest: {{ .Values.images.gateway.digest | quote }}
+    artifact.example.com/signature-state: {{ .Values.provenance.signatureState | quote }}
+    traffic.example.com/stable-weight: {{ .Values.traffic.stableWeight | quote }}
+    traffic.example.com/canary-weight: {{ .Values.traffic.canaryWeight | quote }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "gateway.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "gateway.name" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+      annotations:
+        artifact.example.com/gateway-digest: {{ .Values.images.gateway.digest | quote }}
+        artifact.example.com/waf-digest: {{ .Values.images.waf.digest | quote }}
+        artifact.example.com/authz-digest: {{ .Values.images.authz.digest | quote }}
+        traffic.example.com/stable-weight: {{ .Values.traffic.stableWeight | quote }}
+        traffic.example.com/canary-weight: {{ .Values.traffic.canaryWeight | quote }}
+    spec:
+      initContainers:
+        - name: config-loader
+          image: {{ include "gateway.image" .Values.images.configLoader | quote }}
+      containers:
+        - name: gateway
+          image: {{ include "gateway.image" .Values.images.gateway | quote }}
+          ports:
+            - name: https
+              containerPort: 8443
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: https
+              scheme: HTTPS
+        - name: waf
+          image: {{ include "gateway.image" .Values.images.waf | quote }}
+        - name: authz
+          image: {{ include "gateway.image" .Values.images.authz | quote }}

@@ -1,0 +1,11 @@
+apiVersion: v2
+name: payment-edge-gateway
+description: Helm chart for the payment edge gateway provenance gate.
+type: application
+version: 0.8.1
+appVersion: "2026.07.18"
+annotations:
+  artifact.example.com/chart-registry: oci://registry.example.net/helm/payment-edge-gateway
+  artifact.example.com/source-ref: git.example.net/payments/chart@a7c91de
+  artifact.example.com/builder: tekton-payments-prod
+  artifact.example.com/signature-state: verified

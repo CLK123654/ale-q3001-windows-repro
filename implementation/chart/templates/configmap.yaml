@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "gateway.fullname" . }}-policy
+  namespace: {{ .Release.Namespace }}
+data:
+  mtls_mode: {{ .Values.mtls.mode | quote }}
+  waf_mode: {{ .Values.waf.mode | quote }}
+  stable_weight: {{ .Values.traffic.stableWeight | quote }}
+  canary_weight: {{ .Values.traffic.canaryWeight | quote }}

@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": ["images", "traffic", "mtls", "provenance"],
+  "properties": {
+    "replicaCount": { "type": "integer", "minimum": 2, "maximum": 12 },
+    "images": {
+      "type": "object",
+      "required": ["gateway", "waf", "authz", "configLoader"],
+      "additionalProperties": false,
+      "properties": {
+        "gateway": { "$ref": "#/$defs/imageRef" },
+        "waf": { "$ref": "#/$defs/imageRef" },
+        "authz": { "$ref": "#/$defs/imageRef" },
+        "configLoader": { "$ref": "#/$defs/imageRef" }
+      }
+    },
+    "traffic": {
+      "type": "object",
+      "required": ["stableWeight", "canaryWeight"],
+      "properties": {
+        "stableWeight": { "type": "integer", "minimum": 50, "maximum": 100 },
+        "canaryWeight": { "type": "integer", "minimum": 0, "maximum": 50 }
+      }
+    },
+    "mtls": {
+      "type": "object",
+      "required": ["mode"],
+      "properties": {
+        "mode": { "enum": ["strict", "permissive"] },
+        "breakglassTicket": { "type": "string", "minLength": 8 }
+      }
+    },
+    "waf": {
+      "type": "object",
+      "properties": { "mode": { "enum": ["balanced", "learning", "observe"] } }
+    },
+    "provenance": {
+      "type": "object",
+      "required": ["signatureState"],
+      "properties": { "signatureState": { "const": "verified" } }
+    }
+  },
+  "$defs": {
+    "imageRef": {
+      "type": "object",
+      "required": ["repository", "digest"],
+      "not": { "required": ["tag"] },
+      "properties": {
+        "repository": { "type": "string", "pattern": "^oci\\.example\\.net/" },
+        "digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" }
+      }
+    }
+  }
+}

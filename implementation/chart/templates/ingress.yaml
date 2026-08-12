@@ -1,0 +1,46 @@
+{{- include "gateway.validateTraffic" . -}}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "gateway.fullname" . }}-stable
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    nginx.ingress.kubernetes.io/backend-protocol: HTTPS
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: {{ .Values.host | default (printf "%s.pay.example.net" .Release.Namespace) }}
+      http:
+        paths:
+          - path: /pay
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "gateway.fullname" . }}-stable
+                port:
+                  number: 443
+{{- if gt (.Values.traffic.canaryWeight | int) 0 }}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "gateway.fullname" . }}-canary
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    nginx.ingress.kubernetes.io/backend-protocol: HTTPS
+    nginx.ingress.kubernetes.io/canary: "true"
+    nginx.ingress.kubernetes.io/canary-weight: {{ .Values.traffic.canaryWeight | quote }}
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: {{ .Values.host | default (printf "%s.pay.example.net" .Release.Namespace) }}
+      http:
+        paths:
+          - path: /pay
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "gateway.fullname" . }}-canary
+                port:
+                  number: 443
+{{- end }}
